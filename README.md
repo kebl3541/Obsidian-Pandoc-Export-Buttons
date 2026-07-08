@@ -2,7 +2,7 @@
 
 [![Downloads](https://img.shields.io/github/downloads/kebl3541/Obsidian-Pandoc-Export-Buttons/total?style=flat&logo=github&label=Downloads&color=success&cacheSeconds=3600)](https://github.com/kebl3541/Obsidian-Pandoc-Export-Buttons/releases)
 [![GitHub stars](https://img.shields.io/github/stars/kebl3541/Obsidian-Pandoc-Export-Buttons?style=flat&logo=github&label=Stars&cacheSeconds=7300)](https://github.com/kebl3541/Obsidian-Pandoc-Export-Buttons/stargazers)
-[![Latest release](https://img.shields.io/github/v/release/kebl3541/Obsidian-Pandoc-Export-Buttons?style=flat&label=Release&cacheSeconds=3600)](https://github.com/kebl3541/Obsidian-Pandoc-Export-Buttons/releases/latest)
+[![Latest release](https://img.shields.io/github/v/release/kebl3541/Obsidian-Pandoc-Export-Buttons?style=flat&label=Release&cacheSeconds=3700)](https://github.com/kebl3541/Obsidian-Pandoc-Export-Buttons/releases/latest)
 
 An Obsidian plugin with **one-click buttons that export the current note to Word, PDF, HTML, EPUB, LaTeX**, and any other format [Pandoc](https://pandoc.org) supports.
 
