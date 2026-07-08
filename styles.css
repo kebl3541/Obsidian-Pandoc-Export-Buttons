@@ -1,0 +1,53 @@
+.pandoc-export-view {
+  padding: 12px;
+}
+
+.pandoc-export-header {
+  margin-bottom: 12px;
+}
+
+.pandoc-export-title {
+  font-weight: 600;
+  font-size: var(--font-ui-medium);
+}
+
+.pandoc-export-filename {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+  margin-top: 2px;
+  word-break: break-word;
+}
+
+.pandoc-export-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 8px;
+}
+
+.pandoc-export-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 6px;
+  cursor: pointer;
+}
+
+.pandoc-export-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.pandoc-export-btn-label {
+  font-weight: 500;
+}
+
+.pandoc-export-btn-ext {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+}
+
+.pandoc-export-empty {
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}

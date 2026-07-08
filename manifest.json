@@ -1,0 +1,14 @@
+{
+  "id": "pandoc-export-buttons",
+  "name": "Pandoc Export Buttons",
+  "version": "1.1.1",
+  "minAppVersion": "1.4.0",
+  "description": "One-click buttons that export the current note to Word, PDF, HTML, EPUB, LaTeX, and any other format Pandoc supports.",
+  "author": "kebl3541",
+  "authorUrl": "https://github.com/kebl3541",
+  "fundingUrl": {
+    "Buy Me a Coffee": "https://buymeacoffee.com/philosophizer",
+    "PayPal": "https://www.paypal.com/donate/?business=berlin.philosophy%40gmail.com&no_recurring=0&currency_code=EUR"
+  },
+  "isDesktopOnly": true
+}
