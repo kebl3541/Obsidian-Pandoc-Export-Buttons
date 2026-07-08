@@ -1,8 +1,25 @@
 # Pandoc Export Buttons
 
-One-click buttons that export the current Obsidian note to Word, PDF, HTML, EPUB, LaTeX, ODT, RTF, PowerPoint, and any other format [Pandoc](https://pandoc.org) supports.
+[![Downloads](https://img.shields.io/github/downloads/kebl3541/Obsidian-Pandoc-Export-Buttons/total?style=flat&logo=github&label=Downloads&color=success&cacheSeconds=3600)](https://github.com/kebl3541/Obsidian-Pandoc-Export-Buttons/releases)
+[![GitHub stars](https://img.shields.io/github/stars/kebl3541/Obsidian-Pandoc-Export-Buttons?style=flat&logo=github&label=Stars&cacheSeconds=7200)](https://github.com/kebl3541/Obsidian-Pandoc-Export-Buttons/stargazers)
+[![Latest release](https://img.shields.io/github/v/release/kebl3541/Obsidian-Pandoc-Export-Buttons?style=flat&label=Release&cacheSeconds=3600)](https://github.com/kebl3541/Obsidian-Pandoc-Export-Buttons/releases/latest)
 
-![GitHub all releases](https://img.shields.io/github/downloads/kebl3541/Obsidian-Pandoc-Export-Buttons/total?cacheSeconds=3600)
+<p align="center">If this plugin adds value for you and you would like to help support
+continued development, please use the buttons below:</p>
+
+<p align="center">
+<a href="https://www.paypal.com/donate/?business=berlin.philosophy%40gmail.com&no_recurring=0&currency_code=EUR"><img src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-200px.png" alt="PayPal" height="42"></a>
+&nbsp;&nbsp;
+<a href="https://buymeacoffee.com/philosophizer"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy me a coffee" height="52"></a>
+</p>
+
+<p align="center"><strong><a href="https://buymeacoffee.com/philosophizer">☕ Buy me a coffee</a></strong>&nbsp;&nbsp;·&nbsp;&nbsp;<strong><a href="https://www.paypal.com/donate/?business=berlin.philosophy%40gmail.com&no_recurring=0&currency_code=EUR">💙 Donate via PayPal</a></strong></p>
+
+<p align="center">If you like this plugin or find it useful, please consider giving it a <a href="https://github.com/kebl3541/Obsidian-Pandoc-Export-Buttons">star</a> <a href="https://github.com/kebl3541/Obsidian-Pandoc-Export-Buttons"><img src="https://img.shields.io/github/stars/kebl3541/Obsidian-Pandoc-Export-Buttons?style=social" alt="GitHub Repo stars"></a> on GitHub!</p>
+
+
+
+An Obsidian plugin with **one-click buttons that export the current note to Word, PDF, HTML, EPUB, LaTeX**, and any other format [Pandoc](https://pandoc.org) supports.
 
 ## What it does
 
@@ -16,16 +33,16 @@ One-click buttons that export the current Obsidian note to Word, PDF, HTML, EPUB
 - Choose where exports land: next to the note, in a vault folder, or any folder on disk.
 - Extra Pandoc arguments (`--toc`, `--number-sections`, custom templates…) can be set once and apply to every export.
 
+## Formats
+
+Word (docx), PDF, HTML, EPUB, LaTeX, ODT, RTF, PowerPoint (pptx), plain text, GitHub-flavored Markdown, reStructuredText, Org, MediaWiki, DocBook, Jupyter notebook, Typst. Toggle which buttons appear in settings.
+
 ## Requirements
 
 - [Pandoc](https://pandoc.org/installing.html) (`brew install pandoc` on macOS). The plugin auto-detects it in the usual homebrew/system locations; a custom path can be set in settings.
 - Optional, for LaTeX-quality PDF: a PDF engine such as [tectonic](https://tectonic-typesetting.github.io) (`brew install tectonic`), xelatex, typst, or wkhtmltopdf — auto-detected. Without one, PDF export falls back to the built-in renderer automatically.
 
 Desktop only (the plugin runs the pandoc executable).
-
-## Formats
-
-Word (docx), PDF, HTML, EPUB, LaTeX, ODT, RTF, PowerPoint (pptx), plain text, GitHub-flavored Markdown, reStructuredText, Org, MediaWiki, DocBook, Jupyter notebook, Typst. Toggle which buttons appear in settings.
 
 ## Security and privacy
 
@@ -35,15 +52,6 @@ This plugin needs two capabilities that Obsidian's review process rightly flags,
 - **Filesystem access** (`fs`): note content is read through Obsidian's vault API, never `fs`. Direct filesystem access is limited to: writing the exported file where you chose, writing/deleting one temporary HTML file when the built-in PDF renderer is used, creating the output folder if missing, and checking whether the Pandoc/engine binaries exist during auto-detection.
 - **No network access.** The plugin makes no requests, collects nothing, and phones nowhere.
 
-Desktop only, for the reasons above.
-
-## Support
-
-If this plugin is useful to you:
-
-[<img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-support-yellow?logo=buymeacoffee" height="28">](https://buymeacoffee.com/philosophizer)
-[<img src="https://img.shields.io/badge/PayPal-donate-blue?logo=paypal" height="28">](https://www.paypal.com/donate/?business=berlin.philosophy%40gmail.com&no_recurring=0&currency_code=EUR)
-
 ## License
 
-MIT © kebl3541
+MIT © [kebl3541](https://github.com/kebl3541)
