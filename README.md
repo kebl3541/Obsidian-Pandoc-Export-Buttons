@@ -27,6 +27,16 @@ Desktop only (the plugin runs the pandoc executable).
 
 Word (docx), PDF, HTML, EPUB, LaTeX, ODT, RTF, PowerPoint (pptx), plain text, GitHub-flavored Markdown, reStructuredText, Org, MediaWiki, DocBook, Jupyter notebook, Typst. Toggle which buttons appear in settings.
 
+## Security and privacy
+
+This plugin needs two capabilities that Obsidian's review process rightly flags, so here is exactly how they are used:
+
+- **Process execution** (`child_process.execFile`): the plugin's sole purpose is to run Pandoc. It executes only the Pandoc binary (auto-detected in standard locations, or the path you set) and, for PDF, the PDF engine. Arguments are passed as an array — no shell is invoked, so note names and settings cannot inject commands. Nothing runs except when you click an export button or run an export command.
+- **Filesystem access** (`fs`): note content is read through Obsidian's vault API, never `fs`. Direct filesystem access is limited to: writing the exported file where you chose, writing/deleting one temporary HTML file when the built-in PDF renderer is used, creating the output folder if missing, and checking whether the Pandoc/engine binaries exist during auto-detection.
+- **No network access.** The plugin makes no requests, collects nothing, and phones nowhere.
+
+Desktop only, for the reasons above.
+
 ## Support
 
 If this plugin is useful to you:
