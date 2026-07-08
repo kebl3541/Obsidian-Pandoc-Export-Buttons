@@ -33,11 +33,19 @@ __export(main_exports, {
 });
 module.exports = __toCommonJS(main_exports);
 var import_obsidian2 = require("obsidian");
-var import_child_process = require("child_process");
 var import_electron = require("electron");
-var import_fs = require("fs");
-var os = __toESM(require("os"));
-var path = __toESM(require("path"));
+
+// src/platform.ts
+var nodeChildProcess = __toESM(require("child_process"));
+var nodeFs = __toESM(require("fs"));
+var nodeOs = __toESM(require("os"));
+var nodePath = __toESM(require("path"));
+var path = nodePath;
+var fs = nodeFs;
+var os = nodeOs;
+var childProcess = nodeChildProcess;
+var execFile = childProcess.execFile;
+var processEnv = window.process.env;
 
 // src/formats.ts
 var FORMATS = [
@@ -163,7 +171,7 @@ var CITATION_RE = /(^|[\s([;])@[a-zA-Z0-9_][\w:.#$%&+?<>~/-]*/m;
 function findInExtraDirs(name) {
   for (const dir of EXTRA_BIN_DIRS) {
     const p = path.join(dir, name);
-    if ((0, import_fs.existsSync)(p))
+    if (fs.existsSync(p))
       return p;
   }
   return null;
@@ -264,7 +272,7 @@ var PandocExportPlugin = class extends import_obsidian2.Plugin {
   resolvePandoc() {
     const configured = this.settings.pandocPath.trim();
     if (configured)
-      return (0, import_fs.existsSync)(configured) ? configured : null;
+      return fs.existsSync(configured) ? configured : null;
     return findInExtraDirs("pandoc");
   }
   /** Returns an engine path, the chromium sentinel, or null (= use chromium). */
@@ -275,7 +283,7 @@ var PandocExportPlugin = class extends import_obsidian2.Plugin {
       return CHROMIUM_ENGINE;
     if (configured) {
       if (path.isAbsolute(configured))
-        return (0, import_fs.existsSync)(configured) ? configured : null;
+        return fs.existsSync(configured) ? configured : null;
       return (_a = findInExtraDirs(configured)) != null ? _a : configured;
     }
     for (const name of PDF_ENGINE_CANDIDATES) {
@@ -295,7 +303,7 @@ var PandocExportPlugin = class extends import_obsidian2.Plugin {
     if (!trimmed)
       return null;
     const abs = path.isAbsolute(trimmed) ? trimmed : path.join(vaultRoot, trimmed);
-    return (0, import_fs.existsSync)(abs) ? abs : null;
+    return fs.existsSync(abs) ? abs : null;
   }
   // ---------------------------------------------------------------------
   // Embed expansion: images become absolute-path markdown images; note
@@ -308,31 +316,33 @@ var PandocExportPlugin = class extends import_obsidian2.Plugin {
    * gets comments stripped (they're hidden in preview) and embeds expanded.
    */
   async expandContent(content, sourcePath, vaultRoot, visited, depth) {
-    var _a, _b;
+    const codeRegion = new RegExp(CODE_REGION_RE.source, "g");
     let result = "";
     let last = 0;
-    for (const m of content.matchAll(CODE_REGION_RE)) {
+    let m;
+    while ((m = codeRegion.exec(content)) !== null) {
       result += await this.expandSegment(
-        content.slice(last, (_a = m.index) != null ? _a : 0),
+        content.slice(last, m.index),
         sourcePath,
         vaultRoot,
         visited,
         depth
       );
       result += m[0];
-      last = ((_b = m.index) != null ? _b : 0) + m[0].length;
+      last = m.index + m[0].length;
     }
     result += await this.expandSegment(content.slice(last), sourcePath, vaultRoot, visited, depth);
     return result;
   }
   async expandSegment(segment, sourcePath, vaultRoot, visited, depth) {
-    var _a, _b;
     const content = segment.replace(COMMENT_RE, "");
+    const embed = new RegExp(EMBED_RE.source, "g");
     let result = "";
     let last = 0;
-    for (const m of content.matchAll(EMBED_RE)) {
-      result += content.slice(last, (_a = m.index) != null ? _a : 0);
-      last = ((_b = m.index) != null ? _b : 0) + m[0].length;
+    let m;
+    while ((m = embed.exec(content)) !== null) {
+      result += content.slice(last, m.index);
+      last = m.index + m[0].length;
       result += await this.renderEmbed(m[0], m[1], m[2], m[3], sourcePath, vaultRoot, visited, depth);
     }
     result += content.slice(last);
@@ -431,12 +441,12 @@ ${expanded.trim()}
   async runPandoc(pandoc, args, stdinContent, cwd) {
     var _a;
     const env = {
-      ...process.env,
-      PATH: [(_a = process.env.PATH) != null ? _a : "", ...EXTRA_BIN_DIRS].join(path.delimiter)
+      ...processEnv,
+      PATH: [(_a = processEnv.PATH) != null ? _a : "", ...EXTRA_BIN_DIRS].join(path.delimiter)
     };
-    await new Promise((resolve2, reject) => {
+    await new Promise((resolve, reject) => {
       var _a2, _b, _c;
-      const child = (0, import_child_process.execFile)(
+      const child = execFile(
         pandoc,
         args,
         { cwd, env, maxBuffer: 10 * 1024 * 1024, timeout: 12e4 },
@@ -444,7 +454,7 @@ ${expanded.trim()}
           if (err)
             reject(new Error((stderr == null ? void 0 : stderr.trim()) || err.message));
           else
-            resolve2();
+            resolve();
         }
       );
       (_a2 = child.stdin) == null ? void 0 : _a2.on("error", () => {
@@ -472,7 +482,7 @@ ${expanded.trim()}
         printBackground: true,
         pageSize: "A4"
       });
-      (0, import_fs.writeFileSync)(outPath, data);
+      fs.writeFileSync(outPath, data);
     } finally {
       win.destroy();
     }
@@ -502,7 +512,7 @@ ${expanded.trim()}
     const noteDir = path.join(vaultRoot, (_b = (_a = file.parent) == null ? void 0 : _a.path) != null ? _b : "");
     const outDir = this.outputDir(file, vaultRoot);
     try {
-      (0, import_fs.mkdirSync)(outDir, { recursive: true });
+      fs.mkdirSync(outDir, { recursive: true });
     } catch (e) {
       new import_obsidian2.Notice(`Pandoc: cannot create output folder ${outDir}`, 8e3);
       return false;
@@ -565,7 +575,7 @@ ${expanded.trim()}
           await this.chromiumPdf(chromiumHtml, outPath);
         } finally {
           try {
-            (0, import_fs.unlinkSync)(chromiumHtml);
+            fs.unlinkSync(chromiumHtml);
           } catch (e) {
           }
         }

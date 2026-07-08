@@ -9,11 +9,8 @@ import {
   Setting,
   TFile,
 } from "obsidian";
-import { execFile, ChildProcess } from "child_process";
 import { shell, remote } from "electron";
-import { existsSync, mkdirSync, writeFileSync, unlinkSync } from "fs";
-import * as os from "os";
-import * as path from "path";
+import { execFile, fs, os, path, processEnv, SpawnedProcess } from "./platform";
 import { FORMATS, DEFAULT_ENABLED, PandocFormat } from "./formats";
 import { PandocExportView, VIEW_TYPE_PANDOC_EXPORT } from "./view";
 
@@ -94,7 +91,7 @@ const CITATION_RE = /(^|[\s([;])@[a-zA-Z0-9_][\w:.#$%&+?<>~/-]*/m;
 function findInExtraDirs(name: string): string | null {
   for (const dir of EXTRA_BIN_DIRS) {
     const p = path.join(dir, name);
-    if (existsSync(p)) return p;
+    if (fs.existsSync(p)) return p;
   }
   return null;
 }
@@ -202,7 +199,7 @@ export default class PandocExportPlugin extends Plugin {
 
   resolvePandoc(): string | null {
     const configured = this.settings.pandocPath.trim();
-    if (configured) return existsSync(configured) ? configured : null;
+    if (configured) return fs.existsSync(configured) ? configured : null;
     return findInExtraDirs("pandoc");
   }
 
@@ -211,7 +208,7 @@ export default class PandocExportPlugin extends Plugin {
     const configured = this.settings.pdfEngine.trim();
     if (configured === CHROMIUM_ENGINE) return CHROMIUM_ENGINE;
     if (configured) {
-      if (path.isAbsolute(configured)) return existsSync(configured) ? configured : null;
+      if (path.isAbsolute(configured)) return fs.existsSync(configured) ? configured : null;
       return findInExtraDirs(configured) ?? configured;
     }
     for (const name of PDF_ENGINE_CANDIDATES) {
@@ -231,7 +228,7 @@ export default class PandocExportPlugin extends Plugin {
     const trimmed = p.trim();
     if (!trimmed) return null;
     const abs = path.isAbsolute(trimmed) ? trimmed : path.join(vaultRoot, trimmed);
-    return existsSync(abs) ? abs : null;
+    return fs.existsSync(abs) ? abs : null;
   }
 
   // ---------------------------------------------------------------------
@@ -252,14 +249,16 @@ export default class PandocExportPlugin extends Plugin {
     visited: Set<string>,
     depth: number
   ): Promise<string> {
+    const codeRegion = new RegExp(CODE_REGION_RE.source, "g");
     let result = "";
     let last = 0;
-    for (const m of content.matchAll(CODE_REGION_RE)) {
+    let m: RegExpExecArray | null;
+    while ((m = codeRegion.exec(content)) !== null) {
       result += await this.expandSegment(
-        content.slice(last, m.index ?? 0), sourcePath, vaultRoot, visited, depth
+        content.slice(last, m.index), sourcePath, vaultRoot, visited, depth
       );
       result += m[0];
-      last = (m.index ?? 0) + m[0].length;
+      last = m.index + m[0].length;
     }
     result += await this.expandSegment(content.slice(last), sourcePath, vaultRoot, visited, depth);
     return result;
@@ -273,11 +272,13 @@ export default class PandocExportPlugin extends Plugin {
     depth: number
   ): Promise<string> {
     const content = segment.replace(COMMENT_RE, "");
+    const embed = new RegExp(EMBED_RE.source, "g");
     let result = "";
     let last = 0;
-    for (const m of content.matchAll(EMBED_RE)) {
-      result += content.slice(last, (m.index ?? 0));
-      last = (m.index ?? 0) + m[0].length;
+    let m: RegExpExecArray | null;
+    while ((m = embed.exec(content)) !== null) {
+      result += content.slice(last, m.index);
+      last = m.index + m[0].length;
       result += await this.renderEmbed(m[0], m[1], m[2], m[3], sourcePath, vaultRoot, visited, depth);
     }
     result += content.slice(last);
@@ -385,11 +386,11 @@ export default class PandocExportPlugin extends Plugin {
     cwd: string
   ): Promise<void> {
     const env = {
-      ...process.env,
-      PATH: [process.env.PATH ?? "", ...EXTRA_BIN_DIRS].join(path.delimiter),
+      ...processEnv,
+      PATH: [processEnv.PATH ?? "", ...EXTRA_BIN_DIRS].join(path.delimiter),
     };
     await new Promise<void>((resolve, reject) => {
-      const child: ChildProcess = execFile(
+      const child: SpawnedProcess = execFile(
         pandoc,
         args,
         { cwd, env, maxBuffer: 10 * 1024 * 1024, timeout: 120000 },
@@ -424,7 +425,7 @@ export default class PandocExportPlugin extends Plugin {
         printBackground: true,
         pageSize: "A4",
       });
-      writeFileSync(outPath, data);
+      fs.writeFileSync(outPath, data);
     } finally {
       win.destroy();
     }
@@ -456,7 +457,7 @@ export default class PandocExportPlugin extends Plugin {
     const noteDir = path.join(vaultRoot, file.parent?.path ?? "");
     const outDir = this.outputDir(file, vaultRoot);
     try {
-      mkdirSync(outDir, { recursive: true });
+      fs.mkdirSync(outDir, { recursive: true });
     } catch {
       new Notice(`Pandoc: cannot create output folder ${outDir}`, 8000);
       return false;
@@ -524,7 +525,7 @@ export default class PandocExportPlugin extends Plugin {
           await this.chromiumPdf(chromiumHtml, outPath);
         } finally {
           try {
-            unlinkSync(chromiumHtml);
+            fs.unlinkSync(chromiumHtml);
           } catch {
             // temp file cleanup is best-effort
           }
