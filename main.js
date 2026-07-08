@@ -34,6 +34,7 @@ __export(main_exports, {
 module.exports = __toCommonJS(main_exports);
 var import_obsidian2 = require("obsidian");
 var import_child_process = require("child_process");
+var import_electron = require("electron");
 var import_fs = require("fs");
 var os = __toESM(require("os"));
 var path = __toESM(require("path"));
@@ -92,25 +93,25 @@ var PandocExportView = class extends import_obsidian.ItemView {
     const container = this.containerEl.children[1];
     container.empty();
     container.addClass("pandoc-export-view");
-    const file = this.app.workspace.getActiveFile();
-    const isMd = !!file && file.extension === "md";
+    const active = this.app.workspace.getActiveFile();
+    const mdFile = active && active.extension === "md" ? active : null;
     const header = container.createDiv({ cls: "pandoc-export-header" });
-    header.createEl("div", { text: "Export with Pandoc", cls: "pandoc-export-title" });
-    header.createEl("div", {
-      text: isMd ? file.basename : "Open a markdown note to export it.",
+    header.createDiv({ text: "Export with pandoc", cls: "pandoc-export-title" });
+    header.createDiv({
+      text: mdFile ? mdFile.basename : "Open a markdown note to export it.",
       cls: "pandoc-export-filename"
     });
     const grid = container.createDiv({ cls: "pandoc-export-grid" });
     for (const fmt of this.plugin.enabledFormats()) {
       const btn = grid.createEl("button", { cls: "pandoc-export-btn" });
-      btn.createEl("span", { text: fmt.label, cls: "pandoc-export-btn-label" });
-      btn.createEl("span", { text: `.${fmt.ext}`, cls: "pandoc-export-btn-ext" });
-      btn.disabled = !isMd || this.plugin.exporting;
-      btn.addEventListener("click", async () => {
+      btn.createSpan({ text: fmt.label, cls: "pandoc-export-btn-label" });
+      btn.createSpan({ text: `.${fmt.ext}`, cls: "pandoc-export-btn-ext" });
+      btn.disabled = !mdFile || this.plugin.exporting;
+      btn.addEventListener("click", () => {
         const current = this.app.workspace.getActiveFile();
         if (!current || current.extension !== "md")
           return;
-        await this.plugin.exportFile(current, fmt);
+        void this.plugin.exportFile(current, fmt);
       });
     }
     if (this.plugin.enabledFormats().length === 0) {
@@ -230,7 +231,9 @@ var PandocExportPlugin = class extends import_obsidian2.Plugin {
   onunload() {
   }
   async loadSettings() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    var _a;
+    const stored = (_a = await this.loadData()) != null ? _a : {};
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, stored);
   }
   async saveSettings() {
     await this.saveData(this.settings);
@@ -452,14 +455,14 @@ ${expanded.trim()}
   }
   /** Render standalone HTML to PDF with Obsidian's own Chromium (no install). */
   async chromiumPdf(htmlPath, outPath) {
-    const electron = require("electron");
-    const remote = electron == null ? void 0 : electron.remote;
-    if (!(remote == null ? void 0 : remote.BrowserWindow)) {
+    var _a;
+    const BrowserWindow = (_a = import_electron.remote) == null ? void 0 : _a.BrowserWindow;
+    if (!BrowserWindow) {
       throw new Error(
         "Built-in PDF renderer unavailable \u2014 install a PDF engine (brew install tectonic) or set one in settings."
       );
     }
-    const win = new remote.BrowserWindow({
+    const win = new BrowserWindow({
       show: false,
       webPreferences: { sandbox: true, nodeIntegration: false, contextIsolation: true }
     });
@@ -569,11 +572,10 @@ ${expanded.trim()}
       }
       started.hide();
       new import_obsidian2.Notice(`Exported: ${path.basename(outPath)}`);
-      const electron = require("electron");
       if (this.settings.revealInFolder)
-        electron.shell.showItemInFolder(outPath);
+        import_electron.shell.showItemInFolder(outPath);
       else if (this.settings.openAfterExport)
-        await electron.shell.openPath(outPath);
+        await import_electron.shell.openPath(outPath);
       return true;
     } catch (e) {
       started.hide();
@@ -608,7 +610,7 @@ var PandocExportSettingTab = class extends import_obsidian2.PluginSettingTab {
     new import_obsidian2.Setting(containerEl).setName("PDF engine").setDesc(
       engine && engine !== "chromium" ? `Engine Pandoc uses for PDF. Leave empty to auto-detect (found: ${engine}). Set to "chromium" to force the built-in renderer.` : "No LaTeX engine found \u2014 PDF uses the built-in renderer. Install tectonic (brew install tectonic) for LaTeX-quality typesetting."
     ).addText(
-      (t) => t.setPlaceholder("tectonic").setValue(this.plugin.settings.pdfEngine).onChange(async (v) => {
+      (t) => t.setPlaceholder("Auto-detect").setValue(this.plugin.settings.pdfEngine).onChange(async (v) => {
         this.plugin.settings.pdfEngine = v;
         await this.plugin.saveSettings();
       })
@@ -622,7 +624,7 @@ var PandocExportSettingTab = class extends import_obsidian2.PluginSettingTab {
     );
     if (this.plugin.settings.outputMode === "vault-folder") {
       new import_obsidian2.Setting(containerEl).setName("Vault folder").setDesc("Vault-relative folder for exports (created if missing).").addText(
-        (t) => t.setPlaceholder("pandoc-exports").setValue(this.plugin.settings.vaultFolder).onChange(async (v) => {
+        (t) => t.setPlaceholder("Folder name").setValue(this.plugin.settings.vaultFolder).onChange(async (v) => {
           this.plugin.settings.vaultFolder = v;
           await this.plugin.saveSettings();
         })
@@ -630,7 +632,7 @@ var PandocExportSettingTab = class extends import_obsidian2.PluginSettingTab {
     }
     if (this.plugin.settings.outputMode === "custom") {
       new import_obsidian2.Setting(containerEl).setName("Custom folder").setDesc("Absolute path for exports (created if missing).").addText(
-        (t) => t.setPlaceholder("/Users/you/Documents/exports").setValue(this.plugin.settings.customFolder).onChange(async (v) => {
+        (t) => t.setPlaceholder("Absolute path to a folder").setValue(this.plugin.settings.customFolder).onChange(async (v) => {
           this.plugin.settings.customFolder = v;
           await this.plugin.saveSettings();
         })
@@ -642,13 +644,13 @@ var PandocExportSettingTab = class extends import_obsidian2.PluginSettingTab {
         await this.plugin.saveSettings();
       })
     );
-    new import_obsidian2.Setting(containerEl).setName("Reveal in Finder instead of opening").addToggle(
+    new import_obsidian2.Setting(containerEl).setName("Reveal file instead of opening it").addToggle(
       (t) => t.setValue(this.plugin.settings.revealInFolder).onChange(async (v) => {
         this.plugin.settings.revealInFolder = v;
         await this.plugin.saveSettings();
       })
     );
-    new import_obsidian2.Setting(containerEl).setName("Extra Pandoc arguments").setDesc('Appended to every export, e.g. --toc --number-sections --csl "chicago.csl"').addText(
+    new import_obsidian2.Setting(containerEl).setName("Extra pandoc arguments").setDesc('Appended to every export, e.g. --toc --number-sections --csl "chicago.csl"').addText(
       (t) => t.setPlaceholder("--toc").setValue(this.plugin.settings.extraArgs).onChange(async (v) => {
         this.plugin.settings.extraArgs = v;
         await this.plugin.saveSettings();
@@ -670,8 +672,8 @@ var PandocExportSettingTab = class extends import_obsidian2.PluginSettingTab {
         await this.plugin.saveSettings();
       })
     );
-    new import_obsidian2.Setting(containerEl).setName("CSL style file").setDesc("Absolute or vault-relative path to a .csl citation style.").addText(
-      (t) => t.setPlaceholder("chicago-author-date.csl").setValue(this.plugin.settings.cslPath).onChange(async (v) => {
+    new import_obsidian2.Setting(containerEl).setName("Citation style file").setDesc("Absolute or vault-relative path to a .csl citation style.").addText(
+      (t) => t.setPlaceholder("Path to a .csl file").setValue(this.plugin.settings.cslPath).onChange(async (v) => {
         this.plugin.settings.cslPath = v;
         await this.plugin.saveSettings();
       })

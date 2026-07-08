@@ -32,26 +32,26 @@ export class PandocExportView extends ItemView {
     container.empty();
     container.addClass("pandoc-export-view");
 
-    const file = this.app.workspace.getActiveFile();
-    const isMd = !!file && file.extension === "md";
+    const active = this.app.workspace.getActiveFile();
+    const mdFile = active && active.extension === "md" ? active : null;
 
     const header = container.createDiv({ cls: "pandoc-export-header" });
-    header.createEl("div", { text: "Export with Pandoc", cls: "pandoc-export-title" });
-    header.createEl("div", {
-      text: isMd ? file!.basename : "Open a markdown note to export it.",
+    header.createDiv({ text: "Export with pandoc", cls: "pandoc-export-title" });
+    header.createDiv({
+      text: mdFile ? mdFile.basename : "Open a markdown note to export it.",
       cls: "pandoc-export-filename",
     });
 
     const grid = container.createDiv({ cls: "pandoc-export-grid" });
     for (const fmt of this.plugin.enabledFormats()) {
       const btn = grid.createEl("button", { cls: "pandoc-export-btn" });
-      btn.createEl("span", { text: fmt.label, cls: "pandoc-export-btn-label" });
-      btn.createEl("span", { text: `.${fmt.ext}`, cls: "pandoc-export-btn-ext" });
-      btn.disabled = !isMd || this.plugin.exporting;
-      btn.addEventListener("click", async () => {
+      btn.createSpan({ text: fmt.label, cls: "pandoc-export-btn-label" });
+      btn.createSpan({ text: `.${fmt.ext}`, cls: "pandoc-export-btn-ext" });
+      btn.disabled = !mdFile || this.plugin.exporting;
+      btn.addEventListener("click", () => {
         const current = this.app.workspace.getActiveFile();
         if (!current || current.extension !== "md") return;
-        await this.plugin.exportFile(current, fmt);
+        void this.plugin.exportFile(current, fmt);
       });
     }
 

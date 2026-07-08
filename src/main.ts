@@ -10,6 +10,7 @@ import {
   TFile,
 } from "obsidian";
 import { execFile, ChildProcess } from "child_process";
+import { shell, remote } from "electron";
 import { existsSync, mkdirSync, writeFileSync, unlinkSync } from "fs";
 import * as os from "os";
 import * as path from "path";
@@ -167,7 +168,8 @@ export default class PandocExportPlugin extends Plugin {
   onunload() {}
 
   async loadSettings() {
-    this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+    const stored = ((await this.loadData()) ?? {}) as Partial<PandocExportSettings>;
+    this.settings = Object.assign({}, DEFAULT_SETTINGS, stored);
   }
 
   async saveSettings() {
@@ -406,20 +408,19 @@ export default class PandocExportPlugin extends Plugin {
 
   /** Render standalone HTML to PDF with Obsidian's own Chromium (no install). */
   private async chromiumPdf(htmlPath: string, outPath: string): Promise<void> {
-    const electron = require("electron");
-    const remote = electron?.remote;
-    if (!remote?.BrowserWindow) {
+    const BrowserWindow = remote?.BrowserWindow;
+    if (!BrowserWindow) {
       throw new Error(
         "Built-in PDF renderer unavailable — install a PDF engine (brew install tectonic) or set one in settings."
       );
     }
-    const win = new remote.BrowserWindow({
+    const win = new BrowserWindow({
       show: false,
       webPreferences: { sandbox: true, nodeIntegration: false, contextIsolation: true },
     });
     try {
       await win.loadFile(htmlPath);
-      const data: Buffer = await win.webContents.printToPDF({
+      const data = await win.webContents.printToPDF({
         printBackground: true,
         pageSize: "A4",
       });
@@ -456,7 +457,7 @@ export default class PandocExportPlugin extends Plugin {
     const outDir = this.outputDir(file, vaultRoot);
     try {
       mkdirSync(outDir, { recursive: true });
-    } catch (e) {
+    } catch {
       new Notice(`Pandoc: cannot create output folder ${outDir}`, 8000);
       return false;
     }
@@ -531,9 +532,8 @@ export default class PandocExportPlugin extends Plugin {
       }
       started.hide();
       new Notice(`Exported: ${path.basename(outPath)}`);
-      const electron = require("electron");
-      if (this.settings.revealInFolder) electron.shell.showItemInFolder(outPath);
-      else if (this.settings.openAfterExport) await electron.shell.openPath(outPath);
+      if (this.settings.revealInFolder) shell.showItemInFolder(outPath);
+      else if (this.settings.openAfterExport) await shell.openPath(outPath);
       return true;
     } catch (e) {
       started.hide();
@@ -588,7 +588,7 @@ class PandocExportSettingTab extends PluginSettingTab {
       )
       .addText((t) =>
         t
-          .setPlaceholder("tectonic")
+          .setPlaceholder("Auto-detect")
           .setValue(this.plugin.settings.pdfEngine)
           .onChange(async (v) => {
             this.plugin.settings.pdfEngine = v;
@@ -618,7 +618,7 @@ class PandocExportSettingTab extends PluginSettingTab {
         .setDesc("Vault-relative folder for exports (created if missing).")
         .addText((t) =>
           t
-            .setPlaceholder("pandoc-exports")
+            .setPlaceholder("Folder name")
             .setValue(this.plugin.settings.vaultFolder)
             .onChange(async (v) => {
               this.plugin.settings.vaultFolder = v;
@@ -632,7 +632,7 @@ class PandocExportSettingTab extends PluginSettingTab {
         .setDesc("Absolute path for exports (created if missing).")
         .addText((t) =>
           t
-            .setPlaceholder("/Users/you/Documents/exports")
+            .setPlaceholder("Absolute path to a folder")
             .setValue(this.plugin.settings.customFolder)
             .onChange(async (v) => {
               this.plugin.settings.customFolder = v;
@@ -651,7 +651,7 @@ class PandocExportSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("Reveal in Finder instead of opening")
+      .setName("Reveal file instead of opening it")
       .addToggle((t) =>
         t.setValue(this.plugin.settings.revealInFolder).onChange(async (v) => {
           this.plugin.settings.revealInFolder = v;
@@ -660,7 +660,7 @@ class PandocExportSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("Extra Pandoc arguments")
+      .setName("Extra pandoc arguments")
       .setDesc('Appended to every export, e.g. --toc --number-sections --csl "chicago.csl"')
       .addText((t) =>
         t
@@ -705,11 +705,11 @@ class PandocExportSettingTab extends PluginSettingTab {
       );
 
     new Setting(containerEl)
-      .setName("CSL style file")
+      .setName("Citation style file")
       .setDesc("Absolute or vault-relative path to a .csl citation style.")
       .addText((t) =>
         t
-          .setPlaceholder("chicago-author-date.csl")
+          .setPlaceholder("Path to a .csl file")
           .setValue(this.plugin.settings.cslPath)
           .onChange(async (v) => {
             this.plugin.settings.cslPath = v;
