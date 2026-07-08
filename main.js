@@ -111,7 +111,9 @@ var PandocExportView = class extends import_obsidian.ItemView {
     });
     const grid = container.createDiv({ cls: "pandoc-export-grid" });
     for (const fmt of this.plugin.enabledFormats()) {
-      const btn = grid.createEl("button", { cls: "pandoc-export-btn" });
+      const btn = grid.createEl("button", {
+        cls: ["pandoc-export-btn", `pandoc-export-btn-${fmt.id}`]
+      });
       btn.createSpan({ text: fmt.label, cls: "pandoc-export-btn-label" });
       btn.createSpan({ text: `.${fmt.ext}`, cls: "pandoc-export-btn-ext" });
       btn.disabled = !mdFile || this.plugin.exporting;

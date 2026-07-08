@@ -1,7 +1,7 @@
 {
   "id": "pandoc-export-buttons",
   "name": "Pandoc Export Buttons",
-  "version": "1.1.7",
+  "version": "1.1.8",
   "minAppVersion": "1.7.2",
   "description": "One-click buttons that export the current note to Word, PDF, HTML, EPUB, LaTeX, and any other format Pandoc supports.",
   "author": "kebl3541",

@@ -25,6 +25,24 @@
   gap: 10px;
 }
 
+/* Every format carries its document type's color, quietly */
+.pandoc-export-btn-docx { --pandoc-accent: #4a89dc; }
+.pandoc-export-btn-pdf { --pandoc-accent: #e05252; }
+.pandoc-export-btn-html { --pandoc-accent: #e8833a; }
+.pandoc-export-btn-epub { --pandoc-accent: #57ad68; }
+.pandoc-export-btn-latex { --pandoc-accent: #2e9a9e; }
+.pandoc-export-btn-odt { --pandoc-accent: #3f7fbf; }
+.pandoc-export-btn-rtf { --pandoc-accent: #9a86c9; }
+.pandoc-export-btn-pptx { --pandoc-accent: #d2694f; }
+.pandoc-export-btn-plain { --pandoc-accent: #8a8a93; }
+.pandoc-export-btn-gfm { --pandoc-accent: #7d8ca3; }
+.pandoc-export-btn-rst { --pandoc-accent: #7a9e7e; }
+.pandoc-export-btn-org { --pandoc-accent: #77aa99; }
+.pandoc-export-btn-mediawiki { --pandoc-accent: #c9b458; }
+.pandoc-export-btn-docbook { --pandoc-accent: #b07fb0; }
+.pandoc-export-btn-ipynb { --pandoc-accent: #dd8452; }
+.pandoc-export-btn-typst { --pandoc-accent: #55b4d4; }
+
 .pandoc-export-btn {
   display: flex;
   flex-direction: column;
@@ -44,9 +62,33 @@
     transform 80ms ease;
 }
 
+.pandoc-export-btn::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-bottom: 2px;
+  background-color: var(--pandoc-accent, var(--interactive-accent));
+  opacity: 0.85;
+  transition: opacity 120ms ease, transform 120ms ease;
+}
+
 .pandoc-export-btn:hover:not(:disabled) {
   background-color: var(--interactive-hover);
-  border-color: var(--background-modifier-border-hover);
+  border-color: color-mix(
+    in srgb,
+    var(--pandoc-accent, var(--interactive-accent)) 45%,
+    transparent
+  );
+}
+
+.pandoc-export-btn:hover:not(:disabled)::before {
+  opacity: 1;
+  transform: scale(1.25);
+}
+
+.pandoc-export-btn:disabled::before {
+  opacity: 0.35;
 }
 
 .pandoc-export-btn:active:not(:disabled) {
