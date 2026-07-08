@@ -1,6 +1,6 @@
 {
   "name": "pandoc-export-buttons",
-  "version": "1.1.6",
+  "version": "1.1.7",
   "description": "One-click buttons that export the current Obsidian note to any format Pandoc supports.",
   "main": "main.js",
   "scripts": {

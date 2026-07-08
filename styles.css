@@ -3,7 +3,8 @@
 }
 
 .pandoc-export-header {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
+  text-align: center;
 }
 
 .pandoc-export-title {
@@ -14,40 +15,65 @@
 .pandoc-export-filename {
   color: var(--text-muted);
   font-size: var(--font-ui-small);
-  margin-top: 2px;
+  margin-top: 3px;
   word-break: break-word;
 }
 
 .pandoc-export-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
-  gap: 8px;
+  gap: 10px;
 }
 
 .pandoc-export-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 10px 6px;
+  justify-content: center;
+  gap: 3px;
+  padding: 14px 6px;
+  height: auto;
+  width: 100%;
+  text-align: center;
+  border-radius: 8px;
+  background-color: var(--interactive-normal);
+  border: 1px solid var(--background-modifier-border);
+  box-shadow: none;
   cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease,
+    transform 80ms ease;
+}
+
+.pandoc-export-btn:hover:not(:disabled) {
+  background-color: var(--interactive-hover);
+  border-color: var(--background-modifier-border-hover);
+}
+
+.pandoc-export-btn:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 .pandoc-export-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: default;
 }
 
 .pandoc-export-btn-label {
-  font-weight: 500;
+  font-weight: 600;
+  font-size: var(--font-ui-small);
+  line-height: 1.2;
+  text-align: center;
 }
 
 .pandoc-export-btn-ext {
   color: var(--text-muted);
   font-size: var(--font-ui-smaller);
+  line-height: 1;
+  text-align: center;
 }
 
 .pandoc-export-empty {
   color: var(--text-muted);
   font-size: var(--font-ui-small);
+  text-align: center;
 }
