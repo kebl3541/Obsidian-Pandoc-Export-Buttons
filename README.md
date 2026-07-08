@@ -25,9 +25,9 @@ continued development, please use the buttons below:</p>
 - Every format is also a **command**, so you can bind hotkeys (e.g. ⌘⇧W for Word).
 - **Transclusions are expanded.** `![[Another note]]`, `![[Note#Heading]]`, and `![[Note#^block]]` embeds are replaced by the embedded content (recursively, cycle-safe), so the export reads like the note does in preview.
 - **Exports match preview semantics.** `%%comments%%` are removed (they're hidden in Obsidian), while anything inside code blocks or inline code stays exactly as written.
-- **Images survive.** `![[image.png]]` embeds — including ones inside embedded notes — are resolved to real paths before conversion.
+- **Images survive.** `![[image.png]]` embeds, including ones inside embedded notes, are resolved to real paths before conversion.
 - **Citations just work.** Notes using `[@key]` syntax automatically get `--citeproc`; point the settings at your `.bib` file and CSL style once (or declare them in note frontmatter).
-- **PDF without installing LaTeX.** With a LaTeX engine (tectonic, xelatex…) installed you get LaTeX typesetting; without one, the plugin renders the PDF with Obsidian's built-in Chromium — no dependencies.
+- **PDF without installing LaTeX.** With a LaTeX engine (tectonic, xelatex…) installed you get LaTeX typesetting; without one, the plugin renders the PDF with Obsidian's built-in Chromium, with nothing to install.
 - Choose where exports land: next to the note, in a vault folder, or any folder on disk.
 - Extra Pandoc arguments (`--toc`, `--number-sections`, custom templates…) can be set once and apply to every export.
 
@@ -38,7 +38,7 @@ Word (docx), PDF, HTML, EPUB, LaTeX, ODT, RTF, PowerPoint (pptx), plain text, Gi
 ## Requirements
 
 - [Pandoc](https://pandoc.org/installing.html) (`brew install pandoc` on macOS). The plugin auto-detects it in the usual homebrew/system locations; a custom path can be set in settings.
-- Optional, for LaTeX-quality PDF: a PDF engine such as [tectonic](https://tectonic-typesetting.github.io) (`brew install tectonic`), xelatex, typst, or wkhtmltopdf — auto-detected. Without one, PDF export falls back to the built-in renderer automatically.
+- Optional, for LaTeX-quality PDF: a PDF engine such as [tectonic](https://tectonic-typesetting.github.io) (`brew install tectonic`), xelatex, typst, or wkhtmltopdf, all auto-detected. Without one, PDF export falls back to the built-in renderer automatically.
 
 Desktop only (the plugin runs the pandoc executable).
 
@@ -46,7 +46,7 @@ Desktop only (the plugin runs the pandoc executable).
 
 This plugin needs two capabilities that Obsidian's review process rightly flags, so here is exactly how they are used:
 
-- **Process execution** (`child_process.execFile`): the plugin's sole purpose is to run Pandoc. It executes only the Pandoc binary (auto-detected in standard locations, or the path you set) and, for PDF, the PDF engine. Arguments are passed as an array — no shell is invoked, so note names and settings cannot inject commands. Nothing runs except when you click an export button or run an export command.
+- **Process execution** (`child_process.execFile`): the plugin's sole purpose is to run Pandoc. It executes only the Pandoc binary (auto-detected in standard locations, or the path you set) and, for PDF, the PDF engine. Arguments are passed as an array; no shell is invoked, so note names and settings cannot inject commands. Nothing runs except when you click an export button or run an export command.
 - **Filesystem access** (`fs`): note content is read through Obsidian's vault API, never `fs`. Direct filesystem access is limited to: writing the exported file where you chose, writing/deleting one temporary HTML file when the built-in PDF renderer is used, creating the output folder if missing, and checking whether the Pandoc/engine binaries exist during auto-detection.
 - **No network access.** The plugin makes no requests, collects nothing, and phones nowhere.
 
