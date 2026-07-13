@@ -146,7 +146,8 @@ var DEFAULT_SETTINGS = {
   enabledFormats: [...DEFAULT_ENABLED],
   citations: "auto",
   bibliographyPath: "",
-  cslPath: ""
+  cslPath: "",
+  preserveBlankLines: true
 };
 var EXTRA_BIN_DIRS = [
   "/opt/homebrew/bin",
@@ -168,6 +169,26 @@ var IMAGE_EXTS = /* @__PURE__ */ new Set(["png", "jpg", "jpeg", "gif", "svg", "w
 var MAX_EMBED_DEPTH = 5;
 var EMBED_RE = /!\[\[([^\]|#]+?)(?:#([^\]|]+))?(?:\|([^\]]*))?\]\]/g;
 var CODE_REGION_RE = /```[\s\S]*?(?:```|$)|~~~[\s\S]*?(?:~~~|$)|`[^`\n]+`/g;
+function preserveBlankRuns(content) {
+  const fm = /^---\n[\s\S]*?\n---(\n|$)/.exec(content);
+  const head = fm ? fm[0] : "";
+  const body = content.slice(head.length);
+  const spacer = (seg) => seg.replace(/\n((?:[ \t]*\n){2,})/g, (_, run) => {
+    const blanks = run.match(/\n/g).length;
+    return "\n\n" + "&nbsp;\n\n".repeat(blanks - 1);
+  });
+  const codeRegion = new RegExp(CODE_REGION_RE.source, "g");
+  let out = "";
+  let last = 0;
+  let m;
+  while ((m = codeRegion.exec(body)) !== null) {
+    out += spacer(body.slice(last, m.index));
+    out += m[0];
+    last = m.index + m[0].length;
+  }
+  out += spacer(body.slice(last));
+  return head + out;
+}
 var COMMENT_RE = /%%[\s\S]*?%%/g;
 var CITATION_RE = /(^|[\s([;])@[a-zA-Z0-9_][\w:.#$%&+?<>~/-]*/m;
 function findInExtraDirs(name) {
@@ -525,13 +546,15 @@ ${expanded.trim()}
       outPath = path.join(outDir, `${file.basename}.export.${fmt.ext}`);
     }
     const raw = await this.app.vault.read(file);
-    const content = await this.expandContent(
+    let content = await this.expandContent(
       raw,
       file.path,
       vaultRoot,
       /* @__PURE__ */ new Set([file.path]),
       0
     );
+    if (this.settings.preserveBlankLines)
+      content = preserveBlankRuns(content);
     const args = [
       "-f",
       "markdown+wikilinks_title_after_pipe",
@@ -659,6 +682,14 @@ var PandocExportSettingTab = class extends import_obsidian2.PluginSettingTab {
     new import_obsidian2.Setting(containerEl).setName("Reveal file instead of opening it").addToggle(
       (t) => t.setValue(this.plugin.settings.revealInFolder).onChange(async (v) => {
         this.plugin.settings.revealInFolder = v;
+        await this.plugin.saveSettings();
+      })
+    );
+    new import_obsidian2.Setting(containerEl).setName("Preserve consecutive blank lines").setDesc(
+      "Two or more empty lines in the note become extra vertical space in the export instead of collapsing into a single paragraph break."
+    ).addToggle(
+      (t) => t.setValue(this.plugin.settings.preserveBlankLines).onChange(async (v) => {
+        this.plugin.settings.preserveBlankLines = v;
         await this.plugin.saveSettings();
       })
     );

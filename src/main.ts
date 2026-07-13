@@ -34,6 +34,8 @@ interface PandocExportSettings {
   bibliographyPath: string;
   /** CSL style file, absolute or vault-relative */
   cslPath: string;
+  /** keep runs of blank lines as extra vertical space instead of collapsing */
+  preserveBlankLines: boolean;
 }
 
 const DEFAULT_SETTINGS: PandocExportSettings = {
@@ -49,6 +51,7 @@ const DEFAULT_SETTINGS: PandocExportSettings = {
   citations: "auto",
   bibliographyPath: "",
   cslPath: "",
+  preserveBlankLines: true,
 };
 
 /** Directories where GUI apps on macOS/Linux don't look but CLI tools live. */
@@ -81,6 +84,35 @@ const EMBED_RE = /!\[\[([^\]|#]+?)(?:#([^\]|]+))?(?:\|([^\]]*))?\]\]/g;
 
 /** Regions that must stay untouched: fenced code and inline code. */
 const CODE_REGION_RE = /```[\s\S]*?(?:```|$)|~~~[\s\S]*?(?:~~~|$)|`[^`\n]+`/g;
+
+/**
+ * Markdown collapses any run of blank lines into a single paragraph break, so
+ * the visual gaps authored in Obsidian vanish on export. Outside code blocks
+ * and frontmatter, turn each blank line beyond the first into a `&nbsp;`
+ * paragraph — every pandoc writer (LaTeX, HTML, docx) renders that as an
+ * empty line of vertical space.
+ */
+function preserveBlankRuns(content: string): string {
+  const fm = /^---\n[\s\S]*?\n---(\n|$)/.exec(content);
+  const head = fm ? fm[0] : "";
+  const body = content.slice(head.length);
+  const spacer = (seg: string) =>
+    seg.replace(/\n((?:[ \t]*\n){2,})/g, (_, run: string) => {
+      const blanks = (run.match(/\n/g) as string[]).length;
+      return "\n\n" + "&nbsp;\n\n".repeat(blanks - 1);
+    });
+  const codeRegion = new RegExp(CODE_REGION_RE.source, "g");
+  let out = "";
+  let last = 0;
+  let m: RegExpExecArray | null;
+  while ((m = codeRegion.exec(body)) !== null) {
+    out += spacer(body.slice(last, m.index));
+    out += m[0];
+    last = m.index + m[0].length;
+  }
+  out += spacer(body.slice(last));
+  return head + out;
+}
 
 /** Obsidian comments — hidden in preview, so they don't belong in exports. */
 const COMMENT_RE = /%%[\s\S]*?%%/g;
@@ -471,13 +503,14 @@ export default class PandocExportPlugin extends Plugin {
     }
 
     const raw = await this.app.vault.read(file);
-    const content = await this.expandContent(
+    let content = await this.expandContent(
       raw,
       file.path,
       vaultRoot,
       new Set([file.path]),
       0
     );
+    if (this.settings.preserveBlankLines) content = preserveBlankRuns(content);
 
     const args: string[] = [
       "-f",
@@ -656,6 +689,18 @@ class PandocExportSettingTab extends PluginSettingTab {
       .addToggle((t) =>
         t.setValue(this.plugin.settings.revealInFolder).onChange(async (v) => {
           this.plugin.settings.revealInFolder = v;
+          await this.plugin.saveSettings();
+        })
+      );
+
+    new Setting(containerEl)
+      .setName("Preserve consecutive blank lines")
+      .setDesc(
+        "Two or more empty lines in the note become extra vertical space in the export instead of collapsing into a single paragraph break."
+      )
+      .addToggle((t) =>
+        t.setValue(this.plugin.settings.preserveBlankLines).onChange(async (v) => {
+          this.plugin.settings.preserveBlankLines = v;
           await this.plugin.saveSettings();
         })
       );
