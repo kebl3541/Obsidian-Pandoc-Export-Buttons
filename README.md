@@ -17,7 +17,7 @@ continued development, please use the buttons below:</p>
 
 <p align="center"><strong><a href="https://buymeacoffee.com/philosophizer">☕ Buy me a coffee</a></strong>&nbsp;&nbsp;·&nbsp;&nbsp;<strong><a href="https://www.paypal.com/donate/?business=berlin.philosophy%40gmail.com&no_recurring=0&currency_code=EUR">💙 Donate via PayPal</a></strong></p>
 
-<p>If you like this plugin or find it useful, please consider give it a <a href="https://github.com/kebl3541/Obsidian-Pandoc-Export-Buttons">star</a> <a href="https://github.com/kebl3541/Obsidian-Pandoc-Export-Buttons"><img src="https://img.shields.io/github/stars/kebl3541/Obsidian-Pandoc-Export-Buttons?style=social&cacheSeconds=300" alt="GitHub Repo stars"></a> on GitHub!</p>
+<p>And if you like this plugin or find it useful, please consider give it a <a href="https://github.com/kebl3541/Obsidian-Pandoc-Export-Buttons">star</a> <a href="https://github.com/kebl3541/Obsidian-Pandoc-Export-Buttons"><img src="https://img.shields.io/github/stars/kebl3541/Obsidian-Pandoc-Export-Buttons?style=social&cacheSeconds=300" alt="GitHub Repo stars"></a> on GitHub!</p>
 
 ## What it does
 
